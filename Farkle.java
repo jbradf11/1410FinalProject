@@ -1,25 +1,22 @@
-package finalProject;
+package rev1;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Scanner;
 
 public class Farkle {
 	
 	private int score;
 	private int roundScore;
 	private int[] dice;
-	private int[] activeDice;
-	private int[] keptDice;
+	private boolean[] activeDice;
 	private boolean farkle;
 	
 	public Farkle() {
 		score = 0;
 		roundScore = 0;
-		dice = new int[6];
-		activeDice = new int[] {1,1,1,1,1,1};
-		keptDice = new int[] {0,0,0,0,0,0};
+		dice = new int[]{1,2,3,4,5,6};
+		activeDice = new boolean[] {true,true,true,true,true,true};
 		farkle = false;
 	}
 	
@@ -31,6 +28,13 @@ public class Farkle {
 		return score;
 	}
 	
+//	public void setRoundScore(int[] a){
+//		for(int i =0;i<6;i++) {
+//			if(a[i]==1) activeDice[i] = 0;
+//		}
+//		
+//	}
+
 	public int getRoundScore() {
 		return roundScore;
 	}
@@ -38,60 +42,78 @@ public class Farkle {
 	public boolean getFarkle() {
 		return farkle;
 	}
-	
-	private void setKept(int [] a) {
-		for(int i = 0;i<keptDice.length;i++)
-			if(a[i] == 1) keptDice[i] = 1;
-		activeDice = invertMe(keptDice);
+
+	public void keep(boolean[] a) {
+		roundScore+= testScore(a);
+		setActiveDice(a);
 	}
 	
-	public int[] Roll(int[] r) {
-		if(Arrays.equals(r, new int[] {0,0,0,0,0,0})) {
-			activeDice = new int[] {1,1,1,1,1,1};
-			keptDice = new int[] {0,0,0,0,0,0};
-			return RollAll();
+	void setActiveDice(boolean [] a) {
+		for(int i = 0;i<6;i++)
+			if(a[i]) activeDice[i] = false;
+	}
+	
+	public int[] roll(boolean[] r) {
+		if(Arrays.equals(r, new boolean[] {false,false,false,false,false,false})) {
+			activeDice = new boolean[] {true,true,true,true,true,true};
+			return rollAll();
 		}
-		for(int i = 0; i<r.length;i++)
-			if(r[i]==1) 
-				dice[i] = Dice.Roll();
-		int[] f = trimMe(r);
-		testPrint();
-		System.out.println("Farkle: "+testFarkle(f));
-		return dice;
-	}
-	
-	public int[] RollAll() {
-		for(int i = 0;i<dice.length;i++)
-			dice[i] = Dice.Roll();
-		Arrays.sort(dice);
-		testPrint();
-		System.out.println("Farkle: "+testFarkle(dice));
-		return dice;
-	}
-	
-	int[] trimMe(int[] r) {
 		int count = 0;
-		for(int a: r) {
-			if(a == 1) count++;
-		}
-		int[] r2 = new int[count];
+		for(int i = 0;i<6;i++)
+			if(r[i]  && activeDice[i]) count++;
+		
+		int[] test = new int[count];
 		count = 0;
-		for(int i = 0;i<r.length;i++) {
-			if(r[i]==1) { 
-				r2[count] = dice[i];
+		for(int i = 0; i<r.length;i++)
+			if(r[i] && activeDice[i]) { 
+				dice[i] = Dice.roll();
+				test[count] = dice[i];
 				count++;
 			}
-		}
-		return r2;
+		//int[] f = trimMe(r);
+		if(testFarkle(test)) return null;//new int[] {-1,-1,-1,-1,-1,-1};
+		return dice;
 	}
 	
-	int[] invertMe(int[] r) {
-		int[] r2 = new int[r.length];
-		for(int i = 0;i<r.length;i++) {
-			if(r[i]==0) r2[i] = 1;
-			else r2[i]=0;
-		}
-		return r2;
+	public int[] rollAll() {
+		for(int i = 0;i<6;i++)
+			dice[i] = Dice.roll();
+		Arrays.sort(dice);
+		if(testFarkle(dice)) return null; //new int[] {-1,-1,-1,-1,-1,-1};
+		return dice;
+	}
+	
+//	int[] trimMe(int[] r) {
+//		int count = 0;
+//		for(int a: r) {
+//			if(a == 1) count++;
+//		}
+//		int[] r2 = new int[count];
+//		count = 0;
+//		for(int i = 0;i<r.length;i++) {
+//			if(r[i]==1) { 
+//				r2[count] = dice[i];
+//				count++;
+//			}
+//		}
+//		return r2;
+//	}
+	
+//	int[] invertMe(int[] r) {
+//		int[] r2 = new int[r.length];
+//		for(int i = 0;i<r.length;i++) {
+//			if(r[i]==0) r2[i] = 1;
+//			else r2[i]=0;
+//		}
+//		return r2;
+	//}
+	
+	public int testScore(boolean[] a){
+		List<Integer> b = new ArrayList<>();
+		for(int i = 0;i<6;i++) 
+			if(a[i]) b.add(dice[i]);
+		
+		return testScore(b);
 	}
 	
 	public int testScore(List<Integer> b) {
@@ -173,7 +195,7 @@ public class Farkle {
 					else return -1;
 					return test;
 					
-			case 0: return 0;
+			case 0: return -1;
 					
 			default: return -1;
 		
@@ -207,77 +229,86 @@ public class Farkle {
 		else return a*100;	
 	}
 		
-	private void resetRound() {
+	void resetRound() {
 		if(farkle) roundScore = 0;
-		activeDice = new int[]{1,1,1,1,1,1};
-		keptDice = new int[]{0,0,0,0,0,0};
+		activeDice = new boolean[] {true,true,true,true,true,true};
 		score+= roundScore;
 		roundScore = 0;
 		farkle = false;
 		return;
 	}
 	
-	public void testPrint() {
-		System.out.print("[");
-		for(int i = 0;i<dice.length-1;i++) {
-			System.out.print(dice[i]+", ");
-		}
-		System.out.print(dice[dice.length-1]+"]");
-	}
+//	void testPrint() {
+//		System.out.print("[");
+//		for(int i = 0;i<dice.length-1;i++) {
+//			System.out.print(dice[i]+", ");
+//		}
+//		System.out.print(dice[dice.length-1]+"]");
+//	}
 	
-	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public static void main(String[] args) {
+		Farkle test = new Farkle();
+		test.roll(new boolean[] {true,true, true, false,false,false});
+		System.out.println(Arrays.toString(test.getDice()));
+		test.keep(new boolean[] {false,false,false,false,true,false});
+		System.out.println(test.getRoundScore());
+		System.out.println(Arrays.toString(test.activeDice));
 		
-		Farkle one = new Farkle();
-		Scanner in = new Scanner(System.in);
-	
-		while(one.score < 5000) {
-			//new Round
-			System.out.println("New Round - Total Score: " + one.getScore());
-			System.out.println("----------");
-			one.RollAll();
-			
-			//Round loop;
-			while(!one.getFarkle()) 
-			{
-				List a = new ArrayList();
-				
-				System.out.print("Keep: ");
-					String keepMe = in.nextLine();
-					String[] values = keepMe.split(" ");
-					int[] temp = new int[values.length];
-					
-				for(int i = 0;i<values.length;i++) {
-					temp[i] = Integer.parseInt(values[i]);
-					if(temp[i]==1) a.add(one.dice[i]);
-				}
-				
-				one.setKept(temp);
-				one.roundScore += one.testScore(a);
-				one.testPrint(); System.out.print("Round Score: "+one.getRoundScore());
-				
-				System.out.println("\nRoll again?(y or n): ");
-				if(in.nextLine().equals("y")) 
-				{
-					one.Roll(one.activeDice);
-					continue;
-				}
-				
-				else break;
-			}
-			
-			//round exit	
-			if(one.getFarkle()) {
-				one.resetRound();
-				System.out.println("Round Over! - Farkle!");
-			}
-			else {
-				System.out.println("Round Score Submitted: " + one.getRoundScore());
-				one.resetRound();
-			}
-		}
-		//print final score and exit
-		System.out.println("Final Score: "+ one.getScore());
-		in.close();
 	}
+//test Method no longer fully functional	
+//	@SuppressWarnings({ "rawtypes", "unchecked" })
+//	public static void main(String[] args) {
+//		
+//		Farkle one = new Farkle();
+//		Scanner in = new Scanner(System.in);
+//	
+//		while(one.score < 5000) {
+//			//new Round
+//			System.out.println("New Round - Total Score: " + one.getScore());
+//			System.out.println("----------");
+//			one.RollAll();
+//			
+//			//Round loop;
+//			while(!one.getFarkle()) 
+//			{
+//				List a = new ArrayList();
+//				
+//				System.out.print("Keep: ");
+//					String keepMe = in.nextLine();
+//					String[] values = keepMe.split(" ");
+//					int[] temp = new int[values.length];
+//					
+//				for(int i = 0;i<values.length;i++) {
+//					temp[i] = Integer.parseInt(values[i]);
+//					if(temp[i]==1) a.add(one.dice[i]);
+//				}
+//				
+//				one.setActiveDice(temp);
+//				one.roundScore += one.testScore(a);
+//				one.testPrint(); System.out.print("Round Score: "+one.getRoundScore());
+//				
+//				System.out.println("\nRoll again?(y or n): ");
+//				if(in.nextLine().equals("y")) 
+//				{
+//					one.Roll(one.activeDice);
+//					continue;
+//				}
+//				
+//				else break;
+//			}
+//			
+//			//round exit	
+//			if(one.getFarkle()) {
+//				one.resetRound();
+//				System.out.println("Round Over! - Farkle!");
+//			}
+//			else {
+//				System.out.println("Round Score Submitted: " + one.getRoundScore());
+//				one.resetRound();
+//			}
+//		}
+//		//print final score and exit
+//		System.out.println("Final Score: "+ one.getScore());
+//		in.close();
+//	}
 }
